@@ -1,0 +1,54 @@
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Testing & coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+
+# Type checking & linting caches
+.mypy_cache/
+.ruff_cache/
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Environment files (secrets!)
+.env
+.env.local
+*.pem
+*.key
+
+# Application runtime files
+*.db
+*.sqlite
+*.sqlite3
+sentinel.db
+
+# Logs
+*.log
+logs/
+
+# Lockfile from uv (we'll add this later — keep this line as a placeholder note)
+# uv.lock IS committed (don't ignore it!)
