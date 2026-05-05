@@ -29,19 +29,41 @@ Useful for picking up tomorrow without losing context.
 - 24-hour fixed lookback window (with watermark improvement noted as v0.2)
 - Per-collection z-score detection (informed by the latency baseline differences above)
 
-### Open questions / TODO for next session
-- Add `uv` for proper lockfile management (we deferred this)
-- Write tests with `pytest` and `pytest-vcr`
-- Add CLI entry point (typer)
-- Add Prometheus metrics module
-- Add FastAPI app with /health, /collections, /anomalies, /metrics
-- Add anomaly detector
-- Add Dockerfile + docker-compose
-- Add GitHub Actions CI + GitLab CI mirror
-- Write 3 runbooks + 3 ADRs + incident template
-- Polish README with screenshots
+### Remaining work — honest scope (~12-14h Path A pacing, ~3 more sessions)
+
+**Session 2 — application layer (~4-5h)**
+- [ ] pytest setup + tests for config, eumdac_client, collector
+- [ ] CLI entry point with typer (`watchtower probe`, `watchtower serve`)
+- [ ] Prometheus metrics module (counters, histograms)
+- [ ] FastAPI app with /health, /ready, /collections, /products, /anomalies, /metrics
+- [ ] Anomaly detector with rolling-window per-collection z-score
+
+**Session 3 — deployment + DevSecOps (~3-4h)**
+- [ ] Multi-stage non-root Dockerfile with HEALTHCHECK
+- [ ] docker-compose with sentinel + Prometheus + Grafana
+- [ ] GitHub Actions CI (ruff, mypy, pytest, image build)
+- [ ] GitLab CI mirror (.gitlab-ci.yml)
+- [ ] Security workflow (Bandit, pip-audit, Trivy, CycloneDX SBOM)
+
+**Session 4 — professional polish (~3h)**
+- [ ] 3 runbooks under docs/runbooks/
+- [ ] 3 ADRs under docs/adr/
+- [ ] Incident template
+- [ ] README with badges, architecture diagram, quickstart, screenshots
+- [ ] Tag v0.1.0 and push
+
+**Then: apply (deadline 2026-06-09)**
+
+### Optional v0.2 ideas (post-application)
+- uv for lockfile management
+- Watermark-based polling (resume from last successful sensing_end)
+- Bounded LLM `/explain-anomaly` endpoint with human-in-the-loop
 
 ### Application context
 - Target role: VN 26/26 Junior Data Repositories Operations Engineer (Early Careers)
-- Deadline: 2026-06-09
-- Plan: Path A (deep learning mode), pace ~2-4 more focused sessions
+**Then: apply (deadline 2026-06-09)**
+
+### Optional v0.2 ideas (post-application)
+- uv for lockfile management
+- Watermark-based polling (resume from last successful sensing_end)
+- Bounded LLM `/explain-anomaly` endpoint with human-in-the-loop
