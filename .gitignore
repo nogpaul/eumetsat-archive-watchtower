@@ -44,7 +44,6 @@ Thumbs.db
 *.db
 *.sqlite
 *.sqlite3
-sentinel.db
 
 # Logs
 *.log

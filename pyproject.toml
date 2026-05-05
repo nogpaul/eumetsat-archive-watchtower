@@ -21,6 +21,8 @@ dependencies = [
   "structlog>=24.4",
   "tenacity>=9.0",
   "typer>=0.13",
+  "sqlmodel>=0.0.22",
+  "psycopg[binary]>=3.2", 
 ]
 
 [project.optional-dependencies]
