@@ -23,18 +23,19 @@ from .storage import session
 
 log = structlog.get_logger()
 
-def poll_once() -> dict[str, int]:
+def poll_once(client: EumdacClient | None = None) -> dict[str, int]:
     """Run one polling cycle across all configured collections.
 
-    Returns:
-        A dict mapping collection_id -> count of newly inserted products.
-        Useful for tests, the CLI, and human eyeballing.
+    Args:
+        client: Optional pre-built client. If None, a default one is
+            constructed from settings. Tests pass an explicit fake.
     """
     settings = get_settings()
-    client = EumdacClient(
-        settings.eumetsat_consumer_key,
-        settings.eumetsat_consumer_secret,
-    )
+    if client is None:
+        client = EumdacClient(
+            settings.eumetsat_consumer_key,
+            settings.eumetsat_consumer_secret,
+        )
     new_products_per_collection: dict[str, int] = {}
 
     for collection_id in settings.collections:
