@@ -67,3 +67,29 @@ Useful for picking up tomorrow without losing context.
 - uv for lockfile management
 - Watermark-based polling (resume from last successful sensing_end)
 - Bounded LLM `/explain-anomaly` endpoint with human-in-the-loop
+
+
+## Session 3 — CLI (2026-05-11)
+
+### Built
+- `src/watchtower/cli.py` — typer-based CLI with three commands:
+  - `watchtower probe` — runs one polling cycle (writes to DB)
+  - `watchtower stats` — read-only DB summary (counts, recent products)
+  - `watchtower healthcheck` — exits 0 if config/DB/EUMDAC reachable
+
+### Verified
+- All three commands run cleanly
+- Real polling fetched 98 new products (96 MSG + 2 Metop)
+- 197 products now in local DB
+- Test suite still green (14 tests, ~1s)
+- 10 commits on GitHub
+
+### Next session — Prometheus metrics
+- Counters, gauges, histograms
+- `/metrics` endpoint exposing them
+- Wire metrics into collector + detector
+
+### Key vocab unlocked today
+- Entry points (`[project.scripts]`)
+- `typer.Option`, `typer.Exit`
+- Read-only vs write commands (operational discipline)
