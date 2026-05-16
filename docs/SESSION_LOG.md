@@ -93,3 +93,32 @@ Useful for picking up tomorrow without losing context.
 - Entry points (`[project.scripts]`)
 - `typer.Option`, `typer.Exit`
 - Read-only vs write commands (operational discipline)
+
+
+## Session 4 — afternoon block (2026-05-16)
+
+### Built
+- `src/watchtower/metrics.py` — 5 Prometheus metrics (low-cardinality)
+- `src/watchtower/api.py` — FastAPI app with 6 endpoints
+- `serve` command in CLI; APScheduler running in-process
+- Metrics instrumentation wired into `collector.py`
+
+### Verified
+- All endpoints respond correctly via curl
+- Scheduler reports running via /ready
+- Metric counters/histograms record real EUMETSAT polls
+- Tests still passing (14)
+- 13 commits on GitHub
+
+### Key concepts unlocked
+- Prometheus metric types: Counter / Gauge / Histogram (when to use each)
+- Label cardinality (the cardinal sin — pun intended)
+- The three pillars of observability (metrics / logs / traces)
+- Metrics live in process memory, not shared across processes
+- One-process-per-service for Prometheus-instrumented apps
+- HTTP status codes diagnose stack layers (404 vs 401 vs 500 vs refused)
+
+### Evening block plan
+- Write anomaly detector (z-score, per-collection baseline)
+- Wire detector into /anomalies endpoint
+- Add tests for detector
