@@ -113,6 +113,23 @@ def healthcheck() -> None:
     typer.echo("OK")
     raise typer.Exit(code=0)
 
+@app.command()
+def serve(
+    host: str = typer.Option("127.0.0.1", help="Network interface to bind."),
+    port: int = typer.Option(8000, help="Port to listen on."),
+) -> None:
+    """Start the FastAPI server with the background polling scheduler.
+
+    This is the long-running production mode. Prometheus scrapes /metrics here.
+    """
+    import uvicorn
+    uvicorn.run(
+        "watchtower.api:app",
+        host=host,
+        port=port,
+        log_config=None,  # let structlog handle logging
+    )
+
 
 if __name__ == "__main__":
     app()
