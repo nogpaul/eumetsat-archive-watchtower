@@ -20,7 +20,13 @@ from .config import get_settings
 from .eumdac_client import EumdacClient
 from .models import Product
 from .storage import session
-
+from .metrics import (
+    POLL_DURATION,
+    POLL_FAILURES,
+    POLLS_TOTAL,
+    PRODUCTS_OBSERVED,
+    PUBLICATION_LATENCY,
+)
 log = structlog.get_logger()
 
 def poll_once(client: EumdacClient | None = None) -> dict[str, int]:
@@ -42,55 +48,64 @@ def poll_once(client: EumdacClient | None = None) -> dict[str, int]:
         log.info("collector.poll.start", collection=collection_id)
         new_count = 0
 
-        try:
-            for product_dict in client.list_recent_products(
-                collection_id,
-                since=timedelta(hours=24),
-            ):
+        with POLL_DURATION.labels(collection=collection_id).time():
+            try:
+                for product_dict in client.list_recent_products(
+                    collection_id,
+                    since=timedelta(hours=24),
+                ):
                 # Compute latency if both timestamps are present
-                latency = None
-                if product_dict["ingested"] and product_dict["sensing_end"]:
-                    delta = product_dict["ingested"] - product_dict["sensing_end"]
-                    latency = delta.total_seconds()
+                    latency = None
+                    if product_dict["ingested"] and product_dict["sensing_end"]:
+                        delta = product_dict["ingested"] - product_dict["sensing_end"]
+                        latency = delta.total_seconds()
+                        PUBLICATION_LATENCY.labels(collection=collection_id).observe(latency)
 
-                # Build the Product model
-                product = Product(
-                    collection_id=product_dict["collection_id"],
-                    product_id=product_dict["product_id"],
-                    sensing_start=product_dict["sensing_start"],
-                    sensing_end=product_dict["sensing_end"],
-                    ingested=product_dict["ingested"],
-                    publication_latency_seconds=latency,
+                    # Build the Product model
+                    product = Product(
+                        collection_id=product_dict["collection_id"],
+                        product_id=product_dict["product_id"],
+                        sensing_start=product_dict["sensing_start"],
+                        sensing_end=product_dict["sensing_end"],
+                        ingested=product_dict["ingested"],
+                        publication_latency_seconds=latency,
+                    )
+
+                    # Insert with idempotency: skip if product_id already exists
+                    with session() as s:
+                        try:
+                            s.add(product)
+                            s.commit()
+                            new_count += 1
+                            PRODUCTS_OBSERVED.labels(collection=collection_id).inc()
+                        except IntegrityError:
+                            s.rollback()  # release the failed transaction
+                            # Already in the database — that's expected, skip it
+                            continue
+
+            except Exception as exc:
+                # Per-collection isolation: don't let one bad collection
+                # take down the others
+                POLL_FAILURES.labels(
+                    collection=collection_id,
+                    error_type=type(exc).__name__,
+                ).inc()
+                POLLS_TOTAL.labels(collection=collection_id, outcome="failure").inc()
+                log.error(
+                    "collector.poll.failed",
+                    collection=collection_id,
+                    error_type=type(exc).__name__,
+                    error=str(exc),
                 )
+                new_products_per_collection[collection_id] = 0
+                continue
 
-                # Insert with idempotency: skip if product_id already exists
-                with session() as s:
-                    try:
-                        s.add(product)
-                        s.commit()
-                        new_count += 1
-                    except IntegrityError:
-                        s.rollback()  # release the failed transaction
-                        # Already in the database — that's expected, skip it
-                        continue
-
-        except Exception as exc:
-            # Per-collection isolation: don't let one bad collection
-            # take down the others
-            log.error(
-                "collector.poll.failed",
+            new_products_per_collection[collection_id] = new_count
+            POLLS_TOTAL.labels(collection=collection_id, outcome="success").inc()
+            log.info(
+                "collector.poll.complete",
                 collection=collection_id,
-                error_type=type(exc).__name__,
-                error=str(exc),
+                new_products=new_count,
             )
-            new_products_per_collection[collection_id] = 0
-            continue
-
-        new_products_per_collection[collection_id] = new_count
-        log.info(
-            "collector.poll.complete",
-            collection=collection_id,
-            new_products=new_count,
-        )
 
     return new_products_per_collection

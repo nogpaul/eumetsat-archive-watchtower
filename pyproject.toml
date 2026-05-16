@@ -23,6 +23,8 @@ dependencies = [
   "typer>=0.13",
   "sqlmodel>=0.0.22",
   "psycopg[binary]>=3.2", 
+  "prometheus-client>=0.21",
+  "apscheduler>=3.10",
 ]
 
 [project.optional-dependencies]
