@@ -112,8 +112,13 @@ def products(collection_id: str | None = None, hours: int = 24) -> list[dict]:
 
 @app.get("/anomalies")
 def anomalies() -> list[dict]:
-    """Return current anomalies. Detector will be wired in tomorrow."""
-    return []  # placeholder; we'll wire in detector next
+    """Return current detector findings — one per collection.
+
+    Each finding has a `kind`: "anomaly", "normal", or "insufficient_data".
+    Anomalies are scored by z-score from a rolling 24-hour baseline.
+    """
+    from .detector import detect_anomalies
+    return detect_anomalies()
 
 
 @app.get("/metrics")
