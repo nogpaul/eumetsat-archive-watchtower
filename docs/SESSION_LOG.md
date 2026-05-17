@@ -118,7 +118,31 @@ Useful for picking up tomorrow without losing context.
 - One-process-per-service for Prometheus-instrumented apps
 - HTTP status codes diagnose stack layers (404 vs 401 vs 500 vs refused)
 
-### Evening block plan
-- Write anomaly detector (z-score, per-collection baseline)
-- Wire detector into /anomalies endpoint
-- Add tests for detector
+## Session 5 — evening block (2026-05-16)
+
+### Built
+- `src/watchtower/detector.py` — rolling-window z-score anomaly detector
+- `tests/test_detector.py` — 5 detector tests
+- `/anomalies` endpoint now returns real findings
+
+### Verified
+- 19 tests pass in 0.76s (5 new detector tests + previous 14)
+- Detector honestly returns `insufficient_data` when samples < 30
+- Real data behaves as designed: with only 7 MSG samples in 24h
+  the detector correctly refuses to compute a baseline
+- `test_classifies_extreme_value_as_anomaly` initially failed —
+  fixture had inverted observed_at ordering. Fixed the fixture, not the detector
+
+### Key concepts unlocked
+- pstdev vs stdev (descriptive vs inferential framing)
+- Why exclude the latest value from its own baseline
+- Honest "I don't know" outputs > false confidence
+- sigma==0 guard preserves *useful behavior*, not just avoids crashes
+- "Test failure ≠ code failure" — figure out which one is wrong
+
+### What's left for v0.1
+- Dockerfile + docker-compose
+- GitHub Actions CI (lint, mypy, pytest, build)
+- 3 runbooks + 3 ADRs + incident template
+- README polish + screenshots
+- Tag v0.1.0
